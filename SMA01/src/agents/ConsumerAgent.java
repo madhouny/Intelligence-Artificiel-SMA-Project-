@@ -1,117 +1,107 @@
 package agents;
 
+import containers.ConsumerContainer;
+import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.ParallelBehaviour;
 import jade.core.behaviours.TickerBehaviour;
-import jade.domain.introspection.ACLMessage;
+
+import jade.gui.GuiAgent;
+import jade.gui.GuiEvent;
 import jade.proto.states.ReplySender;
 import jade.tools.gui.ACLAIDDialog;
+import jade.lang.acl.ACLMessage;
 
+public class ConsumerAgent extends GuiAgent {
 
-public class ConsumerAgent  extends Agent{
+	private transient ConsumerContainer gui;
 
 	@Override
 	protected void setup() {
-		System.out.println(".......");
-		System.out.println("Agent Initialisation..."+ this.getAID().getName());
-		if(this.getArguments().length >=1) {
-			System.out.println("je vais tenter d'acheter le livre "+getArguments()[0]);
+		if (getArguments().length == 1) {
+			gui = (ConsumerContainer) getArguments()[0];
+			gui.setConsumerAgent(this);
 		}
-		
-		System.out.println(".......");
-		
-		ParallelBehaviour parallelBehaviour = new ParallelBehaviour();
-		addBehaviour(parallelBehaviour);
-		
-		parallelBehaviour.addSubBehaviour(new CyclicBehaviour() {
-			
-			@Override
-			public void action() {
+			ParallelBehaviour parallelBehaviour = new ParallelBehaviour();
+			addBehaviour(parallelBehaviour);
 
-				jade.lang.acl.ACLMessage aclMsg = receive();
-				if(aclMsg != null) {
-					System.out.println("**********");
-					System.out.println("Reception du message");
-					System.out.println(aclMsg.getSender().getName());
-					System.out.println(aclMsg.getContent());
-					System.out.println(aclMsg.getPerformative());
-					System.out.println(aclMsg.getLanguage());
-					System.out.println(aclMsg.getOntology());
-					System.out.println("**********");
-					
-					jade.lang.acl.ACLMessage reply = aclMsg.createReply();
-					reply.setContent("Bien fait !!");
-					reply.addReceiver(aclMsg.getSender());
-					send(reply);
+			parallelBehaviour.addSubBehaviour(new CyclicBehaviour() {
+
+				@Override
+				public void action() {
+
+					jade.lang.acl.ACLMessage aclMsg = receive();
+					if (aclMsg != null) {
+						gui.logMessage(aclMsg);
+						
+					} else
+						block();
 				}
-				else block();
-			}
-		});
+			});
+
 		
-		
-		/*parallelBehaviour.addSubBehaviour(new TickerBehaviour(this,1000) {
-			
-			@Override
-			protected void onTick() {
-				System.out.println("tic");
-				
-			}
-		});
-		
-		
-		parallelBehaviour.addSubBehaviour(new OneShotBehaviour() {
-			
-			@Override
-			public void action() {
-				System.out.println("Action ....");
-				
-			}
-		});
-		
-		
-		
-		parallelBehaviour.addSubBehaviour(new Behaviour() {
-			private int compteur = 0;
-			
-			@Override
-			public boolean done() {
-				if(compteur == 10) return true;
-				else return false;
-			}
-			
-			@Override
-			public void action() {
-				++compteur;
-				System.out.println("Etape "+compteur);
-				
-			}
-		});
-		*/
-		
-		
+		/*
+		 * parallelBehaviour.addSubBehaviour(new TickerBehaviour(this,1000) {
+		 * 
+		 * @Override protected void onTick() { System.out.println("tic");
+		 * 
+		 * } });
+		 * 
+		 * 
+		 * parallelBehaviour.addSubBehaviour(new OneShotBehaviour() {
+		 * 
+		 * @Override public void action() { System.out.println("Action ....");
+		 * 
+		 * } });
+		 * 
+		 * 
+		 * 
+		 * parallelBehaviour.addSubBehaviour(new Behaviour() { private int compteur = 0;
+		 * 
+		 * @Override public boolean done() { if(compteur == 10) return true; else return
+		 * false; }
+		 * 
+		 * @Override public void action() { ++compteur;
+		 * System.out.println("Etape "+compteur);
+		 * 
+		 * } });
+		 */
+
 	}
-	
+
 	@Override
 	protected void beforeMove() {
 		System.out.println("......");
 		System.out.println("Avant Migration");
 		System.out.println("......");
 	}
-	
+
 	@Override
 	protected void afterMove() {
 		System.out.println("......");
 		System.out.println("Après Migration");
 		System.out.println("......");
 	}
-	
+
 	@Override
 	protected void takeDown() {
 		System.out.println("......");
 		System.out.println("i'm going to die");
 		System.out.println("......");
+	}
+
+	@Override
+	public void onGuiEvent(GuiEvent params) {
+		if(params.getType()==1) {
+			String livre =  params.getParameter(0).toString();
+			ACLMessage aclMessage = new ACLMessage(ACLMessage.REQUEST);
+			aclMessage.setContent(livre);
+			aclMessage.addReceiver(new AID("Acheteur",AID.ISLOCALNAME));
+			send(aclMessage);
+			
+		}
 	}
 }
