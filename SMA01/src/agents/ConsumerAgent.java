@@ -35,7 +35,15 @@ public class ConsumerAgent extends GuiAgent {
 
 					jade.lang.acl.ACLMessage aclMsg = receive();
 					if (aclMsg != null) {
-						gui.logMessage(aclMsg);
+						switch (aclMsg.getPerformative()) {
+						case ACLMessage.CONFIRM:
+							gui.logMessage(aclMsg);
+							break;
+
+						default:
+							break;
+						}
+						
 						
 					} else
 						block();

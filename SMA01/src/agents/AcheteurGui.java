@@ -53,7 +53,9 @@ public class AcheteurGui extends Application {
 	
 	public void logMessage(ACLMessage aclMessage) {
 		Platform.runLater(()->{
-			list.add(aclMessage.getContent());
+			list.add(aclMessage.getContent()
+					+", " +aclMessage.getSender().getName()
+					+", "+ aclMessage.getPerformative());
 		});
 		
 	}
